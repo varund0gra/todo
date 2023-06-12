@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 import moment from "moment";
+import Modal from "./Modal";
+import Navbar from "./Navbar";
+import NoteCard from "./NoteCard";
+import { date, time } from "../Constant/Constants";
 
 function HomePage() {
   // states
@@ -15,10 +19,7 @@ function HomePage() {
   const [bodyPreviewData, setBodyPreviewData] = useState("");
   const [titlePreviewData, setTitlePreviewData] = useState("");
 
-  // functions
   function handleSubmit() {
-    const date = moment().format("MMMM Do YYYY, h:mm:ss a");
-    const time = moment().format(" h:mm:ss a");
     setNotePadData((prev) => [
       ...prev,
       {
@@ -28,21 +29,17 @@ function HomePage() {
         time,
       },
     ]);
-
     setIsOpen(false);
-
     setTile("");
     setBody("");
   }
 
-  // cancel
   function handleCancel() {
     setTile("");
     setBody("");
     setIsOpen(false);
   }
 
-  // delete
   function handleDelete(index) {
     setNotePadData((prev) => {
       const newData = [...prev];
@@ -59,14 +56,6 @@ function HomePage() {
     setBody(notepadData[index]?.body);
   }
 
-  const filteredNotes = notepadData.filter((note) => {
-    return note.title.toLowerCase().includes(search.toLowerCase());
-  });
-
-  function handleSearch(e) {
-    setSearch(e.target.value);
-  }
-
   function handleEditBtn() {
     const index = indexValue;
     const date = moment().format("MMMM Do YYYY, h:mm:ss a");
@@ -77,11 +66,16 @@ function HomePage() {
     };
     setIsOpen(false);
   }
+  const filter = notepadData.filter((note) => {
+    return note.title.toLowerCase().includes(search.toLowerCase());
+  });
 
   function handleDropDown(e) {
     const value = e.target.value;
     setSortOption(value);
-    if (value === "Title") {
+    if (value === "None") {
+      setNotePadData((prev) => [...prev]);
+    } else if (value === "Title") {
       setNotePadData((prev) =>
         [...prev].sort((a, b) => a.title.localeCompare(b.title))
       );
@@ -89,115 +83,57 @@ function HomePage() {
       setNotePadData((prev) =>
         [...prev].sort((a, b) => moment(a.date).diff(moment(b.date)))
       );
-    }
-     else if (value === "dateModified") {
+    } else if (value === "dateModified") {
       setNotePadData((prev) =>
-        [...prev].sort((a, b) => moment(a.date ,"MM-DD-YYYY a").diff(moment(b.time ,"MM-DD-YYYY a")))
+        [...prev].sort((a, b) =>
+          moment(b.date, "MMMM Do YYYY, h:mm:ss a").diff(
+            moment(a.date, "MMMM Do YYYY, h:mm:ss a")
+          )
+        )
       );
     }
   }
+
   function handleView(index) {
     setPreviewData(false);
     setBodyPreviewData(notepadData[index]?.body);
     setTitlePreviewData(notepadData[index]?.title);
   }
-  console.log(notepadData);
+
   return (
     <div>
-      <nav className="navbar">
-        <div className="navbar-start">
-          <i class="fa-solid fa-book fa-bounce main_icon"></i>
-          <label>NOTIFY</label>
-        </div>
-        <div className="navbar-end">
-          <>
-            <span
-              style={{ color: "white", fontSize: "16px", fontWeight: "500" }}
-            >
-              Sort By:
-            </span>
-            <select
-              onChange={handleDropDown}
-              value={sortOption}
-              className="selectopt"
-            >
-              <option value="None" key="">
-                None
-              </option>
-              <option value="Title" key="">
-                Title
-              </option>
-              <option value="dateCreated" key="">
-                Date Created
-              </option>
-              <option value="dateModified" key="">
-                Date Modified
-              </option>
-             
-            </select>
-            <input
-              type="search"
-              className="search_bar"
-              placeholder="Search..."
-              onChange={(e) => {
-                handleSearch(e);
-              }}
-            />{" "}
-            <i
-              class="fas fa-search"
-              style={{ color: "white", fontSize: "18px", padding: "6px" }}
-            ></i>
-          </>
-        </div>
-      </nav>
-      {previewData == true ? (
+      <Navbar
+        handleDropDown={handleDropDown}
+        sortOption={sortOption}
+        setSearch={setSearch}
+      />
+      {previewData ? (
         <div>
-          {!isOpen && (
-            <div className="flexingCard">
-              {filteredNotes.length > 0 ? (
-                filteredNotes.map((item, index) => {
-                  return (
-                    <div className="profile-card">
-                      <div className="profile-info">
-                        <h2 className="name">{item.title}</h2>
-                        <p className="description">{item.body}</p>
-                        <div class="social-links">
-                          <a href="#" className="social-icon">
-                            <i
-                              class="fa-regular fa-pen-to-square"
-                              onClick={() => handleEdit(index)}
-                            ></i>
-                          </a>
-                          <a href="#" className="social-icon">
-                            <i
-                              class="fa-regular fa-eye"
-                              onClick={() => handleView(index)}
-                            ></i>
-                          </a>
-                          <a href="#" className="social-icon">
-                            <i
-                              class="fa-solid fa-trash"
-                              onClick={() => handleDelete(index)}
-                            ></i>
-                          </a>
-                        </div>
-                        <br />
-                        <div className="card-date">{item.date}</div>
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="main_Back">
-                  <img
-                    src="https://t4.ftcdn.net/jpg/05/33/54/55/360_F_533545570_M0xIF8ZO6lN5XKgDLug2MFLhhLOwaAYq.jpg"
-                    className="data_image"
+          <div className="flexingCard">
+            {filter.length > 0 ? (
+              filter.map((item, index) => {
+                return (
+                  <NoteCard
+                   previewData={previewData}
+                    key={index}
+                    item={item}
+                    index={index}
+                    handleEdit={handleEdit}
+                    handleView={handleView}
+                    handleDelete={handleDelete}
                   />
-                  <p className="notes_data animate-charcter">Add Some Notes!</p>
-                </div>
-              )}
-            </div>
-          )}
+                );
+              })
+            ) : (
+              <div className="main_Back">
+                <img
+                  src="https://t4.ftcdn.net/jpg/05/33/54/55/360_F_533545570_M0xIF8ZO6lN5XKgDLug2MFLhhLOwaAYq.jpg"
+                  className="data_image"
+                />
+                <p className="notes_data animate-charcter">Add Some Notes!</p>
+              </div>
+            )}
+          </div>
         </div>
       ) : (
         <div className="cardg">
@@ -218,65 +154,30 @@ function HomePage() {
 
       {/* modal */}
       <div className="overlay">
-        {isOpen === true ? (
-          <div className="modal-container">
-            <div className="modal">
-              <div className="modal-content">
-                <i
-                  class="fa-sharp fa-regular fa-circle-xmark"
-                  style={{ textAlign: "end", fontSize: 20 }}
-                  onClick={() => {
-                    handleCancel();
-                  }}
-                ></i>
-                {edit === true ? <h2>Edit Note</h2> : <h2>Add note</h2>}
-                <input
-                  type="text"
-                  placeholder="Title"
-                  value={title}
-                  onChange={(e) => {
-                    setTile(e.target.value);
-                  }}
-                />
-                <textarea
-                  className="textarea"
-                  cols="40"
-                  rows="10"
-                  placeholder="Write Content here...."
-                  value={body}
-                  onChange={(e) => [setBody(e.target.value)]}
-                ></textarea>
-                <div className="modal-buttons">
-                  <button
-                    onClick={() => {
-                      handleCancel();
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  {edit === true ? (
-                    <button onClick={handleEditBtn}>Edit</button>
-                  ) : (
-                    <button onClick={() => handleSubmit()}>Submit</button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <>
-            <button
-              onClick={() => {
-                setIsOpen(true);
-                setEdit(false);
-              }}
-              className="addbtn"
-            >
-              +
-            </button>
-          </>
-        )}
+        <Modal
+          isOpen={isOpen}
+          edit={edit}
+          title={title}
+          body={body}
+          onCancel={handleCancel}
+          onEdit={handleEditBtn}
+          onSubmit={handleSubmit}
+          onTitleChange={(e) => setTile(e.target.value)}
+          onBodyChange={(e) => setBody(e.target.value)}
+        />
+        <>
+          <button
+            onClick={() => {
+              setIsOpen(true);
+              setEdit(false);
+            }}
+            className="addbtn"
+          >
+            +
+          </button>
+        </>
       </div>
+      
     </div>
   );
 }

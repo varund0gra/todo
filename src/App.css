@@ -178,7 +178,6 @@
   text-decoration: none;
 }
 
-/* Media Query for Responsive Design */
 @media (max-width: 600px) {
   .profile-card {
     max-width: 100%;
@@ -271,8 +270,7 @@ min-height: 20rem;
   margin: 50px auto;
   background-color: #d8cde6;
   border-radius: 15px;
- 
-  /* overflow: auto; */
+
 }
 .cardtitle{
   display: block;
